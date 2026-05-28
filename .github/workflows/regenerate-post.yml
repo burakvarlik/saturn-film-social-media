@@ -1,0 +1,177 @@
+name: Regenerate Single Post
+
+# ─────────────────────────────────────────────────────────────────
+# TETIKLEYICI: Make.com'dan repository_dispatch event
+#
+# 3 farklı event türü:
+#   - regenerate-photo-ai    → AI yeni foto üretir
+#   - regenerate-photo-user  → Kullanıcının verdiği foto URL'i kullanır
+#   - regenerate-caption     → AI yeni caption üretir
+#
+# Payload (client_payload):
+#   metadata_path: "posts/2026-06-05-film-yapim-M.json"
+#   photo_url:     (sadece user-photo için)
+# ─────────────────────────────────────────────────────────────────
+on:
+  repository_dispatch:
+    types:
+      - regenerate-photo-ai
+      - regenerate-photo-user
+      - regenerate-caption
+
+  # Manuel test için
+  workflow_dispatch:
+    inputs:
+      metadata_path:
+        description: 'Metadata JSON yolu (örn: posts/2026-06-05-film-yapim-M.json)'
+        required: true
+        type: string
+      mode:
+        description: 'Regenerate modu'
+        required: true
+        type: choice
+        options:
+          - ai-photo
+          - user-photo
+          - caption
+      photo_url:
+        description: 'user-photo modu için foto URL'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: regenerate-${{ github.event.client_payload.metadata_path || inputs.metadata_path }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  regenerate:
+    name: Saturn tek post regenerate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Repo checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Python 3.12 setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: 'scripts/requirements.txt'
+
+      - name: Ensure DejaVu fonts
+        run: |
+          if [ ! -f /usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf ]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq fonts-dejavu-core
+          fi
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements.txt
+
+      # ─── Mode'u event type'tan veya input'tan belirle ─────────
+      - name: Determine mode and params
+        id: params
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MODE="${{ inputs.mode }}"
+            METADATA="${{ inputs.metadata_path }}"
+            PHOTO_URL="${{ inputs.photo_url }}"
+          else
+            case "${{ github.event.action }}" in
+              regenerate-photo-ai)   MODE="ai-photo" ;;
+              regenerate-photo-user) MODE="user-photo" ;;
+              regenerate-caption)    MODE="caption" ;;
+              *)
+                echo "❌ Bilinmeyen event action: ${{ github.event.action }}"
+                exit 1
+                ;;
+            esac
+            METADATA="${{ github.event.client_payload.metadata_path }}"
+            PHOTO_URL="${{ github.event.client_payload.photo_url }}"
+          fi
+
+          if [ -z "$METADATA" ]; then
+            echo "❌ metadata_path boş"
+            exit 1
+          fi
+
+          if [ ! -f "$METADATA" ]; then
+            echo "❌ Metadata dosyası bulunamadı: $METADATA"
+            exit 1
+          fi
+
+          echo "mode=$MODE"           >> "$GITHUB_OUTPUT"
+          echo "metadata=$METADATA"   >> "$GITHUB_OUTPUT"
+          echo "photo_url=$PHOTO_URL" >> "$GITHUB_OUTPUT"
+
+          echo "═══════════════════════════════════════"
+          echo " Mode:     $MODE"
+          echo " Metadata: $METADATA"
+          if [ -n "$PHOTO_URL" ]; then
+            echo " Photo:    ${PHOTO_URL:0:80}..."
+          fi
+          echo "═══════════════════════════════════════"
+
+      - name: Regenerate
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          ARGS=( --metadata-path "${{ steps.params.outputs.metadata }}"
+                 --mode "${{ steps.params.outputs.mode }}" )
+
+          if [ -n "${{ steps.params.outputs.photo_url }}" ]; then
+            ARGS+=( --photo-url "${{ steps.params.outputs.photo_url }}" )
+          fi
+
+          python scripts/regenerate_post.py "${ARGS[@]}"
+
+      - name: Commit and push
+        run: |
+          git config user.name  "Saturn Bot"
+          git config user.email "bot@saturnfilm.net"
+
+          git add posts/
+
+          if git diff --staged --quiet; then
+            echo "Değişiklik yok, commit atılmıyor"
+            exit 0
+          fi
+
+          MODE="${{ steps.params.outputs.mode }}"
+          FILE=$(basename "${{ steps.params.outputs.metadata }}" .json)
+          git commit -m "🔄 Regenerate ($MODE): $FILE"
+          git push
+
+          echo "✅ Değişiklik commit edildi ve push edildi"
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "# 🔄 Saturn Post Regenerate"
+            echo ""
+            echo "**Mode:** ${{ steps.params.outputs.mode }}"
+            echo "**Dosya:** \`${{ steps.params.outputs.metadata }}\`"
+            echo ""
+            echo "## Sonuç"
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "✅ Başarılı"
+            else
+              echo "❌ Başarısız"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
