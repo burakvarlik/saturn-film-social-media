@@ -148,6 +148,29 @@ def aylik_rotasyon(month: int) -> list[str]:
         return ["dizi_yapim", "muzik_klibi"]
 
 
+# Layout havuzu — 5 foto'lu + 1 foto'suz (M).
+# Her ay bu havuzdan, aya göre kayan, çeşitli bir 3'lü kombinasyon seçilir.
+# Böylece feed her ay farklı görünür ama marka kimliği (renk/logo/font) sabit kalır.
+LAYOUT_HAVUZU = ["A", "B", "F", "T", "C"]   # foto gerektiren layout'lar (M ayrı)
+
+
+def aylik_layout_secimi(month: int) -> list[str]:
+    """Her hizmet için 3 layout döner. Aya göre kayar, böylece aylar arası çeşitlilik olur.
+
+    Kural: her 3'lüde 1 adet foto'suz M layout + 2 adet foto'lu layout bulunur.
+    Foto'lu layout'lar havuzdan (A,B,F,T,C) aya göre kayan pencereyle seçilir.
+    Dönen değer 6 elemanlı: [H1-x, H1-y, H1-z, H2-x, H2-y, H2-z].
+    """
+    # Aya göre havuzda kayan başlangıç noktası
+    offset = (month - 1) % len(LAYOUT_HAVUZU)
+    # Bu ayın 2 foto'lu layout'u (kayan pencere)
+    foto1 = LAYOUT_HAVUZU[offset]
+    foto2 = LAYOUT_HAVUZU[(offset + 2) % len(LAYOUT_HAVUZU)]
+    # Her hizmet: [foto1, M, foto2]  (M ortada, foto'lular kenarda)
+    tek_hizmet = [foto1, "M", foto2]
+    return tek_hizmet * 2   # iki hizmet için tekrarla
+
+
 AY_ADI_TR = {
     1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan", 5: "Mayıs", 6: "Haziran",
     7: "Temmuz", 8: "Ağustos", 9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık",
@@ -247,15 +270,25 @@ def generate_content(
     year: int,
     month: int,
     hizmet_anahtarlari: list[str],
+    layouts: list[str],
 ) -> list[dict]:
     """6 post için içerik üretir (2 hizmet × 3 layout = 6).
-    
-    Layout sıralaması: B → M → A (her hizmet için).
-    Returns: list of 6 dict, sırasıyla [H1-B, H1-M, H1-A, H2-B, H2-M, H2-A].
+
+    Layout'lar `layouts` parametresinden gelir (aylik_layout_secimi ile belirlenir).
+    Returns: list of 6 dict; layout sırası `layouts` ile birebir eşleşir.
     """
     ay_adi = AY_ADI_TR[month]
     h1 = HIZMETLER[hizmet_anahtarlari[0]]
     h2 = HIZMETLER[hizmet_anahtarlari[1]]
+
+    # Post planı: hangi hizmet + hangi layout sırası (layouts param'dan)
+    # layouts 6 elemanlı: ilk 3'ü h1, son 3'ü h2 için
+    plan_satirlari = []
+    for i, lay in enumerate(layouts):
+        hiz = hizmet_anahtarlari[0] if i < 3 else hizmet_anahtarlari[1]
+        hiz_ad = HIZMETLER[hiz]["ad"]
+        plan_satirlari.append(f"  Post {i+1}: hizmet_anahtari={hiz} ({hiz_ad}), layout={lay}")
+    post_plan_str = "\n".join(plan_satirlari)
     
     prompt = f"""Saturn Film & Entertainment için {ay_adi} {year} ayı sosyal medya içeriklerini üreteceksin.
 
@@ -265,17 +298,18 @@ BU AYIN HİZMETLERİ:
 1) {h1['ad']}: {h1['ozellik']}
 2) {h2['ad']}: {h2['ozellik']}
 
-ÇIKTILAR: 6 post (2 hizmet × 3 farklı layout). Her hizmet için B → M → A sırasında.
+ÇIKTILAR: 6 post (2 hizmet × 3 farklı layout). Layout'lar aşağıda her post için TANIMLI;
+verilen layout'a UYGUN alanları doldur (diğerlerini null bırak).
 
-LAYOUT A (text + foto, başlık ağırlıklı):
-- headline: 3 satır CAPS başlık (toplam 5-9 kelime). Vurucu, sinematik, sloganvari.
-- subtitle: 2 kısa satır italic alt başlık (toplam 8-14 kelime). Açıklayıcı.
+LAYOUT A / F / T / C (foto + başlık; hepsi aynı içerik alanlarını kullanır):
+- headline: 2-3 satır CAPS başlık (toplam 4-8 kelime). Vurucu, sinematik, sloganvari.
+- subtitle: 1 satır italic alt başlık (6-12 kelime). Açıklayıcı.
 
-LAYOUT M (sadece typography, manifesto/slogan):
+LAYOUT M (sadece typography, foto YOK, manifesto/slogan):
 - slogan: 3 satır CAPS dev slogan (toplam 5-8 kelime). Saturn yörünge metaforu olabilir.
 - subslogan: 1 satır italic (5-10 kelime). Hizmetin kapsamını belirten.
 
-LAYOUT B (foto + CTA/iletişim):
+LAYOUT B (foto + CTA/iletişim paneli):
 - cta_headline: 2 satır CAPS başlık (4-7 kelime). Eyleme çağıran.
 - cta_body: 2-3 satır body (15-25 kelime). Saturn'un ne sunduğunu özetleyen.
 
@@ -296,29 +330,21 @@ KESIN KURALLAR:
 - markdown YOK (asterisk, underscore vs)
 - Aynı söz ve metaforu farklı postlarda tekrar etme; her post ayrı bir açı bulsun
 
-JSON formatında dön. Format:
+ÜRETİLECEK 6 POST (bu sıra ve layout'lara TAM uy):
+{post_plan_str}
+
+JSON formatında dön. Her post için TÜM alanları ver (kullanılmayanı null bırak):
 {{
   "posts": [
     {{
-      "hizmet_anahtari": "{hizmet_anahtarlari[0]}",
-      "layout": "B",
-      "headline": null,
-      "subtitle": null,
-      "slogan": null,
-      "subslogan": null,
-      "cta_headline": "...",
-      "cta_body": "...",
+      "hizmet_anahtari": "...",
+      "layout": "...",
+      "headline": null, "subtitle": null,
+      "slogan": null, "subslogan": null,
+      "cta_headline": null, "cta_body": null,
       "caption": "..."
-    }},
-    {{
-      "hizmet_anahtari": "{hizmet_anahtarlari[0]}",
-      "layout": "M",
-      ...
-    }},
-    {{ "hizmet_anahtari": "{hizmet_anahtarlari[0]}", "layout": "A", ... }},
-    {{ "hizmet_anahtari": "{hizmet_anahtarlari[1]}", "layout": "B", ... }},
-    {{ "hizmet_anahtari": "{hizmet_anahtarlari[1]}", "layout": "M", ... }},
-    {{ "hizmet_anahtari": "{hizmet_anahtarlari[1]}", "layout": "A", ... }}
+    }}
+    // ... toplam 6 post, yukarıdaki plana göre
   ]
 }}
 """
@@ -357,12 +383,15 @@ def generate_photo(client: OpenAI, hizmet_anahtari: str, layout: str) -> Image.I
     """Sinematik foto üret. Layout A = portrait (1024x1536), Layout B = landscape (1536x1024)."""
     hizmet = HIZMETLER[hizmet_anahtari]
     
+    # Layout'a göre en uygun foto oranı
     if layout == "A":
-        size = "1024x1536"
-    elif layout == "B":
-        size = "1536x1024"
+        size = "1024x1536"          # dikey (sağ şerit)
+    elif layout in ("B", "T"):
+        size = "1536x1024"          # yatay (üst şerit)
+    elif layout in ("F", "C"):
+        size = "1024x1024"          # kare (tam ekran / çerçeve)
     else:
-        raise ValueError(f"Layout {layout} için foto üretilmez (sadece A ve B)")
+        raise ValueError(f"Layout {layout} için foto üretilmez (M foto-suz)")
     
     prompt = (
         f"CRITICAL: wide shot, atmospheric, NO people facing camera, NO close-up faces. "
@@ -707,6 +736,137 @@ def render_layout_B(post_data: dict, photo: Image.Image, service_no: int) -> Ima
     return img
 
 
+def render_layout_F(post_data: dict, photo: Image.Image, service_no: int) -> Image.Image:
+    """Layout F — full-bleed: foto tum kareyi kaplar, alt gradient uzerine baslik."""
+    hizmet_anahtari = post_data["hizmet_anahtari"]
+    hizmet = HIZMETLER[hizmet_anahtari]
+
+    img = Image.new("RGB", (POST_SIZE, POST_SIZE), BG_DEEP)
+    photo_fitted = fit_photo_to_area(photo, POST_SIZE, POST_SIZE)
+    photo_fitted = apply_cinematic_treatment(photo_fitted, seed=(hash(hizmet_anahtari) + 2) & 0xFFFF)
+    img.paste(photo_fitted, (0, 0))
+
+    # Alttan koyu gradient (metin okunurlugu icin)
+    grad = Image.new("L", (1, POST_SIZE), 0)
+    for y in range(POST_SIZE):
+        t = y / POST_SIZE
+        a = 0 if t < 0.45 else int(235 * ((t - 0.45) / 0.55) ** 1.3)
+        grad.putpixel((0, y), a)
+    grad = grad.resize((POST_SIZE, POST_SIZE))
+    dark = Image.new("RGB", (POST_SIZE, POST_SIZE), BG_DEEP)
+    img = Image.composite(dark, img, grad)
+
+    draw = ImageDraw.Draw(img)
+    paste_logo(img, target_w=260, x=60, y=60)
+
+    f_num = font(F_BOLD_COND, 18)
+    num_text = f"0{service_no} / 04"
+    bbox = draw.textbbox((0, 0), num_text, font=f_num)
+    draw.text((POST_SIZE - 60 - (bbox[2] - bbox[0]), 70), num_text, fill=GOLD, font=f_num)
+
+    # Alt blok: tag + baslik
+    f_tag = font(F_BOLD_COND, 22)
+    draw.text((60, POST_SIZE - 300), "— " + hizmet["tag"], fill=CYAN, font=f_tag)
+    f_h = font(F_BOLD_COND, 62)
+    y = POST_SIZE - 262
+    for line in (post_data.get("headline") or "").split("\n"):
+        draw.text((60, y), line.upper(), fill=WHITE, font=f_h)
+        y += 66
+    draw.line([(62, y + 10), (300, y + 10)], fill=GOLD, width=3)
+    f_sub = font(F_OBLIQUE, 26)
+    draw.text((60, y + 26), post_data.get("subtitle") or "", fill=MUTED, font=f_sub)
+    f_url = font(F_BOLD_COND, 18)
+    draw.text((60, POST_SIZE - 50), "www.saturnfilm.net", fill=GOLD, font=f_url)
+    four_corners(draw, POST_SIZE, POST_SIZE, inset=32, cs=24, cw=3, color=WHITE)
+    return img
+
+
+def render_layout_T(post_data: dict, photo: Image.Image, service_no: int) -> Image.Image:
+    """Layout T — top-strip: ust yatay foto seridi + alt lacivert zeminde ortali metin."""
+    hizmet_anahtari = post_data["hizmet_anahtari"]
+    hizmet = HIZMETLER[hizmet_anahtari]
+
+    img = Image.new("RGB", (POST_SIZE, POST_SIZE), BG_DEEP)
+    draw = ImageDraw.Draw(img)
+
+    PHOTO_H = int(POST_SIZE * 0.52)
+    photo_fitted = fit_photo_to_area(photo, POST_SIZE, PHOTO_H)
+    photo_fitted = apply_cinematic_treatment(photo_fitted, seed=(hash(hizmet_anahtari) + 3) & 0xFFFF)
+    photo_fitted = overlay_gold_sweep(photo_fitted, y_ratio=0.8)
+    img.paste(photo_fitted, (0, 0))
+    draw.line([(0, PHOTO_H), (POST_SIZE, PHOTO_H)], fill=GOLD, width=3)
+
+    paste_logo(img, target_w=240, x=55, y=55)
+    f_num = font(F_BOLD_COND, 18)
+    num_text = f"0{service_no} / 04"
+    bbox = draw.textbbox((0, 0), num_text, font=f_num)
+    draw.text((POST_SIZE - 58 - (bbox[2] - bbox[0]), 62), num_text, fill=WHITE, font=f_num)
+
+    cy = PHOTO_H + 55
+    f_tag = font(F_BOLD_COND, 22)
+    tag = "— " + hizmet["tag"]
+    bbox = draw.textbbox((0, 0), tag, font=f_tag)
+    draw.text(((POST_SIZE - (bbox[2] - bbox[0])) // 2, cy), tag, fill=CYAN, font=f_tag)
+    f_h = font(F_BOLD_COND, 58)
+    y = cy + 44
+    for line in (post_data.get("headline") or "").split("\n"):
+        bbox = draw.textbbox((0, 0), line.upper(), font=f_h)
+        draw.text(((POST_SIZE - (bbox[2] - bbox[0])) // 2, y), line.upper(), fill=WHITE, font=f_h)
+        y += 62
+    draw_cyan_dot(draw, POST_SIZE // 2, y + 22, r=5)
+    draw.line([(POST_SIZE // 2 - 120, y + 22), (POST_SIZE // 2 - 20, y + 22)], fill=GOLD, width=2)
+    draw.line([(POST_SIZE // 2 + 20, y + 22), (POST_SIZE // 2 + 120, y + 22)], fill=GOLD, width=2)
+    f_sub = font(F_OBLIQUE, 25)
+    sub = post_data.get("subtitle") or ""
+    bbox = draw.textbbox((0, 0), sub, font=f_sub)
+    draw.text(((POST_SIZE - (bbox[2] - bbox[0])) // 2, y + 42), sub, fill=MUTED, font=f_sub)
+    f_url = font(F_BOLD_COND, 18)
+    bbox = draw.textbbox((0, 0), "www.saturnfilm.net", font=f_url)
+    draw.text(((POST_SIZE - (bbox[2] - bbox[0])) // 2, POST_SIZE - 58), "www.saturnfilm.net", fill=GOLD, font=f_url)
+    return img
+
+
+def render_layout_C(post_data: dict, photo: Image.Image, service_no: int) -> Image.Image:
+    """Layout C — center-frame: ortada altin cerceveli foto + ust/alt ortali metin."""
+    hizmet_anahtari = post_data["hizmet_anahtari"]
+    hizmet = HIZMETLER[hizmet_anahtari]
+
+    img = Image.new("RGB", (POST_SIZE, POST_SIZE), BG_DEEP)
+    draw = ImageDraw.Draw(img)
+
+    logo_w = 240
+    paste_logo(img, target_w=logo_w, x=(POST_SIZE - logo_w) // 2, y=55)
+
+    f_tag = font(F_BOLD_COND, 22)
+    tag = "— " + hizmet["tag"]
+    bbox = draw.textbbox((0, 0), tag, font=f_tag)
+    draw.text(((POST_SIZE - (bbox[2] - bbox[0])) // 2, 150), tag, fill=CYAN, font=f_tag)
+
+    FRAME = 560
+    fx = (POST_SIZE - FRAME) // 2
+    fy = 200
+    photo_fitted = fit_photo_to_area(photo, FRAME, FRAME)
+    photo_fitted = apply_cinematic_treatment(photo_fitted, seed=(hash(hizmet_anahtari) + 4) & 0xFFFF)
+    img.paste(photo_fitted, (fx, fy))
+    draw.rectangle((fx - 3, fy - 3, fx + FRAME + 2, fy + FRAME + 2), outline=GOLD, width=3)
+    four_corners(draw, POST_SIZE, POST_SIZE, inset=34, cs=26, cw=3, color=WHITE)
+
+    f_h = font(F_BOLD_COND, 52)
+    y = fy + FRAME + 40
+    for line in (post_data.get("headline") or "").split("\n"):
+        bbox = draw.textbbox((0, 0), line.upper(), font=f_h)
+        draw.text(((POST_SIZE - (bbox[2] - bbox[0])) // 2, y), line.upper(), fill=WHITE, font=f_h)
+        y += 56
+    f_sub = font(F_OBLIQUE, 24)
+    sub = post_data.get("subtitle") or ""
+    bbox = draw.textbbox((0, 0), sub, font=f_sub)
+    draw.text(((POST_SIZE - (bbox[2] - bbox[0])) // 2, y + 6), sub, fill=MUTED, font=f_sub)
+    f_url = font(F_BOLD_COND, 18)
+    bbox = draw.textbbox((0, 0), "www.saturnfilm.net", font=f_url)
+    draw.text(((POST_SIZE - (bbox[2] - bbox[0])) // 2, POST_SIZE - 52), "www.saturnfilm.net", fill=GOLD, font=f_url)
+    return img
+
+
 # ────────────────────────────────────────────────────────────────────
 # WEBHOOK (Make.com)
 # ────────────────────────────────────────────────────────────────────
@@ -752,9 +912,11 @@ def main():
         sys.exit(1)
     log.info(f"Yayın tarihleri: {', '.join(d.strftime('%d %b') for d in dates)}")
     
-    # 2) Bu ayın hizmetleri
+    # 2) Bu ayın hizmetleri + layout kombinasyonu
     hizmet_anahtarlari = aylik_rotasyon(month)
+    layouts = aylik_layout_secimi(month)   # 6 elemanlı; aya göre çeşitlenir
     log.info(f"Bu ayın hizmetleri: {HIZMETLER[hizmet_anahtarlari[0]]['ad']} + {HIZMETLER[hizmet_anahtarlari[1]]['ad']}")
+    log.info(f"Bu ayın layout'ları: {layouts[:3]} (her hizmet için)")
     
     # 3) GitHub repo URL'i (image_url için)
     gh_repo = os.environ.get("GITHUB_REPOSITORY", "<KULLANICI>/saturn-film-social-media")
@@ -763,7 +925,7 @@ def main():
     
     # 4) OpenAI içerik üretimi
     client = get_openai_client()
-    posts = generate_content(client, year, month, hizmet_anahtarlari)
+    posts = generate_content(client, year, month, hizmet_anahtarlari, layouts)
     
     # 5) Her post için foto üret + render + kaydet
     webhook_url = os.environ.get("MAKE_WEBHOOK_URL")
@@ -774,9 +936,12 @@ def main():
     
     for idx, post in enumerate(posts):
         post_date = dates[idx]
-        hizmet_anahtari = post["hizmet_anahtari"]
+        # Layout ve hizmet KODDAN gelir (GPT'ye güvenmeyiz — tutarlılık için)
+        layout = layouts[idx]
+        hizmet_anahtari = hizmet_anahtarlari[0] if idx < 3 else hizmet_anahtarlari[1]
         hizmet = HIZMETLER[hizmet_anahtari]
-        layout = post["layout"]
+        post["layout"] = layout              # metadata tutarlılığı
+        post["hizmet_anahtari"] = hizmet_anahtari
         
         # Her hizmetin sıra numarası (1-4) — global liste
         service_no_map = {"film_yapim": 1, "ai_reklam": 2, "dizi_yapim": 3, "muzik_klibi": 4}
@@ -784,25 +949,34 @@ def main():
         
         log.info(f"[{idx+1}/6] {post_date.strftime('%d %b %a')} · {hizmet['ad']} · Layout {layout}")
         
-        # Foto üret (A, B) veya atla (M)
+        # Foto üret (M hariç tüm layout'lar foto gerektirir)
         photo = None
-        if layout in ("A", "B"):
+        if layout != "M":
             if args.skip_photo:
-                # Test placeholder
-                size = (1024, 1536) if layout == "A" else (1536, 1024)
+                # Test placeholder — layout'a göre oran
+                if layout == "A":
+                    size = (1024, 1536)   # dikey
+                elif layout in ("B", "T"):
+                    size = (1536, 1024)   # yatay
+                else:                     # F, C → kare
+                    size = (1024, 1024)
                 photo = Image.new("RGB", size, (40, 50, 80))
                 log.info("  · Foto: placeholder (skip-photo)")
             else:
                 photo = generate_photo(client, hizmet_anahtari, layout)
                 log.info(f"  · Foto: {photo.size}")
         
-        # Render
-        if layout == "A":
-            img = render_layout_A(post, photo, service_no)
-        elif layout == "M":
-            img = render_layout_M(post, service_no)
-        elif layout == "B":
-            img = render_layout_B(post, photo, service_no)
+        # Render — 6 layout
+        render_map = {
+            "A": lambda: render_layout_A(post, photo, service_no),
+            "M": lambda: render_layout_M(post, service_no),
+            "B": lambda: render_layout_B(post, photo, service_no),
+            "F": lambda: render_layout_F(post, photo, service_no),
+            "T": lambda: render_layout_T(post, photo, service_no),
+            "C": lambda: render_layout_C(post, photo, service_no),
+        }
+        if layout in render_map:
+            img = render_map[layout]()
         else:
             log.error(f"Bilinmeyen layout: {layout}")
             continue
