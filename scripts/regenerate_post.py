@@ -39,9 +39,37 @@ from generate_posts import (  # noqa: E402
     render_layout_A,
     render_layout_M,
     render_layout_B,
+    render_layout_F,
+    render_layout_T,
+    render_layout_C,
     clean_markdown,
     get_openai_client,
 )
+
+
+# Layout -> render fonksiyonu eşlemesi (foto'lu layout'lar)
+def _render_with_photo(layout, post_data, photo, service_no):
+    """Foto'lu layout'u uygun render fonksiyonuyla çizer."""
+    fn_map = {
+        "A": render_layout_A,
+        "B": render_layout_B,
+        "F": render_layout_F,
+        "T": render_layout_T,
+        "C": render_layout_C,
+    }
+    fn = fn_map.get(layout)
+    if fn is None:
+        raise ValueError(f"Layout {layout} foto'lu render desteklemiyor")
+    return fn(post_data, photo, service_no)
+
+
+def _photo_size_for(layout):
+    """Layout'a göre AI foto üretim oranı."""
+    if layout == "A":
+        return "1024x1536"
+    if layout in ("B", "T"):
+        return "1536x1024"
+    return "1024x1024"   # F, C kare
 
 logging.basicConfig(
     level=logging.INFO,
@@ -72,8 +100,8 @@ def regenerate_ai_photo(metadata: dict, openai_client) -> Image.Image:
         }
         return render_layout_M(post_data, service_no)
 
-    # Layout A veya B için yeni foto
-    size = "1024x1536" if layout == "A" else "1536x1024"
+    # Foto'lu layout için yeni foto (A, B, F, T, C)
+    size = _photo_size_for(layout)
     prompt = (
         f"CRITICAL: wide shot, atmospheric, NO people facing camera, NO close-up faces. "
         f"Cinematic photograph, dark moody atmosphere, professional film production aesthetic. "
@@ -106,10 +134,7 @@ def regenerate_ai_photo(metadata: dict, openai_client) -> Image.Image:
         "cta_headline": metadata.get("cta_headline"),
         "cta_body": metadata.get("cta_body"),
     }
-    if layout == "A":
-        return render_layout_A(post_data, photo, service_no)
-    else:
-        return render_layout_B(post_data, photo, service_no)
+    return _render_with_photo(layout, post_data, photo, service_no)
 
 
 def regenerate_user_photo(metadata: dict, photo_url: str) -> Image.Image:
@@ -143,10 +168,7 @@ def regenerate_user_photo(metadata: dict, photo_url: str) -> Image.Image:
         "cta_headline": metadata.get("cta_headline"),
         "cta_body": metadata.get("cta_body"),
     }
-    if layout == "A":
-        return render_layout_A(post_data, photo, service_no)
-    else:
-        return render_layout_B(post_data, photo, service_no)
+    return _render_with_photo(layout, post_data, photo, service_no)
 
 
 def regenerate_caption(metadata: dict, openai_client) -> str:
