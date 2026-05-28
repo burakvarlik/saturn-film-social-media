@@ -418,18 +418,23 @@ def apply_cinematic_treatment(photo: Image.Image, seed: int = 42) -> Image.Image
     """
     w, h = photo.size
 
-    # --- Oto-parlaklik/kontrast telafisi ---
-    # Once histogram'a gore griye gore otomatik kontrast (kirpma ile).
-    photo = ImageOps.autocontrast(photo, cutoff=1)
-    # Ortalama parlakligi olc; cok karanliksa yukselt.
+    # --- Adaptif isik telafisi (gamma tabanli, highlight korumali) ---
+    # Sabit parlaklik carpani highlight'lari patlatiyordu (cene/el parlamasi).
+    # Bunun yerine gamma ile SADECE golgeleri acariz, parlak tonlari korur ve
+    # 0.85 ustunu yumusak sikistirip parlamayi (clipping) onleriz.
+    photo = ImageOps.autocontrast(photo, cutoff=0.5)
     gray = photo.convert("L")
     mean_lum = sum(gray.getdata()) / (w * h)
-    if mean_lum < 110:
-        # Hedef ~120; orana gore parlaklik artir (max 2.2x guvenli sinir).
-        factor = min(2.2, 120.0 / max(mean_lum, 1.0))
-        photo = ImageEnhance.Brightness(photo).enhance(factor)
-        # Parlatma sonrasi hafif kontrast geri ver.
-        photo = ImageEnhance.Contrast(photo).enhance(1.08)
+    if mean_lum < 120:
+        # mean=20 -> gamma~0.57 (cok acar), mean=120 -> gamma~1.0 (dokunmaz)
+        gamma = max(0.5, min(1.0, mean_lum / 120.0 * 0.5 + 0.5))
+        lut = []
+        for i in range(256):
+            v = (i / 255.0) ** gamma          # gamma<1 golgeleri acar
+            if v > 0.85:                       # highlight sikistirma (parlama onler)
+                v = 0.85 + (v - 0.85) * 0.5
+            lut.append(int(max(0, min(255, v * 255))))
+        photo = photo.point(lut * 3)           # RGB uc kanala uygula
 
     # --- Vignette (yumusatildi: 200 -> 110) ---
     vignette = Image.new("L", (w, h), 0)
