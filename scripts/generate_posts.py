@@ -31,7 +31,7 @@ from io import BytesIO
 from typing import Optional
 
 import requests
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageOps
 from openai import OpenAI
 
 # ────────────────────────────────────────────────────────────────────
@@ -411,25 +411,44 @@ def fit_photo_to_area(photo: Image.Image, target_w: int, target_h: int) -> Image
 
 
 def apply_cinematic_treatment(photo: Image.Image, seed: int = 42) -> Image.Image:
-    """Foto'ya Saturn sinematik atmosfer ekle: vignette + blue tone shift + grain."""
+    """Foto'ya Saturn sinematik atmosfer ekle: oto-parlaklik + vignette + blue tone + grain.
+
+    Karanlik fotolar (orijinali koyu olanlar) otomatik telafi edilir, boylece
+    vignette uygulandiktan sonra da gorunur kalirlar.
+    """
     w, h = photo.size
-    
-    # Vignette
+
+    # --- Oto-parlaklik/kontrast telafisi ---
+    # Once histogram'a gore griye gore otomatik kontrast (kirpma ile).
+    photo = ImageOps.autocontrast(photo, cutoff=1)
+    # Ortalama parlakligi olc; cok karanliksa yukselt.
+    gray = photo.convert("L")
+    mean_lum = sum(gray.getdata()) / (w * h)
+    if mean_lum < 110:
+        # Hedef ~120; orana gore parlaklik artir (max 2.2x guvenli sinir).
+        factor = min(2.2, 120.0 / max(mean_lum, 1.0))
+        photo = ImageEnhance.Brightness(photo).enhance(factor)
+        # Parlatma sonrasi hafif kontrast geri ver.
+        photo = ImageEnhance.Contrast(photo).enhance(1.08)
+
+    # --- Vignette (yumusatildi: 200 -> 110) ---
     vignette = Image.new("L", (w, h), 0)
     vd = ImageDraw.Draw(vignette)
     max_r = int(math.hypot(w, h) / 2)
     for r in range(max_r, 0, -8):
         t = r / max_r
-        alpha = int(200 * t)
+        alpha = int(110 * t)
         vd.ellipse((w//2 - r, h//2 - r, w//2 + r, h//2 + r), fill=255 - alpha)
     black = Image.new("RGB", (w, h), (0, 0, 0))
-    photo = Image.composite(black, photo, vignette)
-    
-    # Hafif mavi tone shift (sinematik soğuk ton)
+    # DUZELTME: composite(image1, image2, mask) -> mask=255 ise image1 secilir.
+    # Maske merkezi beyaz (foto gorunur), kenarlar koyu (vignette).
+    photo = Image.composite(photo, black, vignette)
+
+    # --- Hafif mavi tone shift (0.08 -> 0.05, daha az soguk) ---
     overlay = Image.new("RGB", (w, h), (15, 25, 45))
-    photo = Image.blend(photo, overlay, 0.08)
-    
-    # Grain
+    photo = Image.blend(photo, overlay, 0.05)
+
+    # --- Grain ---
     grain = Image.new("L", (w, h), 0)
     gp = grain.load()
     rng = random.Random(seed)
@@ -438,7 +457,7 @@ def apply_cinematic_treatment(photo: Image.Image, seed: int = 42) -> Image.Image
         gp[x, y] = rng.randint(0, 60)
     grain_rgb = Image.merge("RGB", (grain, grain, grain))
     photo = Image.blend(photo, grain_rgb, 0.05)
-    
+
     return photo
 
 
