@@ -149,15 +149,26 @@ jobs:
 
           if git diff --staged --quiet; then
             echo "Değişiklik yok, commit atılmıyor"
-            exit 0
+          else
+            MODE="${{ steps.params.outputs.mode }}"
+            FILE=$(basename "${{ steps.params.outputs.metadata }}" .json)
+            git commit -m "🔄 Regenerate ($MODE): $FILE"
+            git push
+            echo "✅ Değişiklik commit edildi ve push edildi"
           fi
 
-          MODE="${{ steps.params.outputs.mode }}"
-          FILE=$(basename "${{ steps.params.outputs.metadata }}" .json)
-          git commit -m "🔄 Regenerate ($MODE): $FILE"
-          git push
-
-          echo "✅ Değişiklik commit edildi ve push edildi"
+      # ─── Make'e "görsel hazır" bildirimi gönder ───────────────
+      # Sleep modülü Make'te bundle bozuyor; bu yüzden bekleme yerine
+      # iş bitince Make'e webhook ile haber veriyoruz.
+      - name: Notify Make (görsel hazır)
+        if: success() && steps.params.outputs.mode != 'caption'
+        run: |
+          # GitHub raw CDN'in yeni commit'i görmesi için kısa bekleme
+          sleep 8
+          python scripts/notify_make.py \
+            "${{ steps.params.outputs.metadata }}" \
+            "${{ steps.params.outputs.mode }}"
+          echo "✅ Make'e görsel hazır bildirimi gönderildi"
 
       - name: Job summary
         if: always()
