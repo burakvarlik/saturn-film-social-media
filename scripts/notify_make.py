@@ -11,10 +11,13 @@ def main():
     metadata_path = sys.argv[1]
     mode = sys.argv[2]
 
+    import time
     png = json.load(open(metadata_path))["dosya"]
+    # Cache-bust: Telegram ayni URL'i cache'liyor, ?v=timestamp ile her seferinde taze ceker
+    cb = int(time.time())
     image_url = (
         "https://raw.githubusercontent.com/burakvarlik/"
-        f"saturn-film-social-media/main/posts/{png}"
+        f"saturn-film-social-media/main/posts/{png}?v={cb}"
     )
 
     if mode == "user-photo":
