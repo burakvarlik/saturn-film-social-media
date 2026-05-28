@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+
+# Virtual env
+venv/
+env/
+.venv/
+.env
+
+# Lokal test artifaktlari
+*.local.png
+*.local.json
+test_output/
+local_test/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Gecici dosyalar
+*.tmp
+*.bak
