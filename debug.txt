@@ -1,49 +1,49 @@
-17:18:41 | INFO    | Başlangıç tarihi: 07 Jun 2026 (Sun)
-17:18:41 | INFO    | ═══════ Saturn Film içerik üretimi: Haziran 2026 ═══════
-17:18:41 | INFO    | Yayın tarihleri: 07 Jun, 10 Jun, 12 Jun, 17 Jun, 19 Jun, 24 Jun
-17:18:41 | INFO    | Bu ayın hizmetleri: Yapay Zeka Reklam Filmleri + Müzik Klibi
-17:18:41 | INFO    | Bu ayın layout'ları: ['A', 'M', 'F'] (her hizmet için)
-17:18:41 | INFO    | OpenAI: Haziran 2026 için içerik üretiliyor (Yapay Zeka Reklam Filmleri + Müzik Klibi)...
-17:18:55 | INFO    | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
-17:18:55 | INFO    | OpenAI içerik üretimi tamam. Token kullanımı: 2579
-17:18:55 | INFO    | [1/6] 07 Jun Sun · Yapay Zeka Reklam Filmleri · Layout A
-17:18:55 | INFO    | gpt-image-1: Yapay Zeka Reklam Filmleri (A) — 1024x1536
-17:19:17 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
-17:19:17 | INFO    |   · Foto: (1024, 1536)
+18:07:54 | INFO    | Başlangıç tarihi: 07 Jun 2026 (Sun)
+18:07:54 | INFO    | ═══════ Saturn Film içerik üretimi: Haziran 2026 ═══════
+18:07:54 | INFO    | Yayın tarihleri: 07 Jun, 10 Jun, 12 Jun, 17 Jun, 19 Jun, 24 Jun
+18:07:54 | INFO    | Bu ayın hizmetleri: Yapay Zeka Reklam Filmleri + Müzik Klibi
+18:07:54 | INFO    | Bu ayın layout'ları: ['A', 'M', 'F'] (her hizmet için)
+18:07:54 | INFO    | OpenAI: Haziran 2026 için içerik üretiliyor (Yapay Zeka Reklam Filmleri + Müzik Klibi)...
+18:08:07 | INFO    | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+18:08:07 | INFO    | OpenAI içerik üretimi tamam. Token kullanımı: 2581
+18:08:07 | INFO    | [1/6] 07 Jun Sun · Yapay Zeka Reklam Filmleri · Layout A
+18:08:07 | INFO    | gpt-image-1: Yapay Zeka Reklam Filmleri (A) — 1024x1536
+18:08:28 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
+18:08:28 | INFO    |   · Foto: (1024, 1536)
 /home/runner/work/saturn-film-social-media/saturn-film-social-media/scripts/generate_posts.py:517: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
   mean_lum = sum(gray.getdata()) / (w * h)
-17:19:18 | INFO    |   · PNG: posts/2026-06-07-yapay-zeka-reklam-filmleri-A.png
-17:19:19 | INFO    |   → Webhook OK (2026-06-07)
-17:19:19 | INFO    | [2/6] 10 Jun Wed · Yapay Zeka Reklam Filmleri · Layout M
-17:19:19 | INFO    |   · PNG: posts/2026-06-10-yapay-zeka-reklam-filmleri-M.png
-17:19:19 | INFO    |   → Webhook OK (2026-06-10)
-17:19:19 | INFO    | [3/6] 12 Jun Fri · Yapay Zeka Reklam Filmleri · Layout F
-17:19:19 | INFO    | gpt-image-1: Yapay Zeka Reklam Filmleri (F) — 1024x1024
-17:19:36 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
-17:19:36 | INFO    |   · Foto: (1024, 1024)
-17:19:38 | INFO    |   · PNG: posts/2026-06-12-yapay-zeka-reklam-filmleri-F.png
-17:19:39 | INFO    |   → Webhook OK (2026-06-12)
-17:19:39 | INFO    | [4/6] 17 Jun Wed · Müzik Klibi · Layout A
-17:19:39 | INFO    | gpt-image-1: Müzik Klibi (A) — 1024x1536
-17:19:59 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
-17:19:59 | INFO    |   · Foto: (1024, 1536)
-17:20:00 | INFO    |   · PNG: posts/2026-06-17-muzik-klibi-A.png
-17:20:01 | INFO    |   → Webhook OK (2026-06-17)
-17:20:01 | INFO    | [5/6] 19 Jun Fri · Müzik Klibi · Layout M
-17:20:01 | INFO    |   · PNG: posts/2026-06-19-muzik-klibi-M.png
-17:20:02 | INFO    |   → Webhook OK (2026-06-19)
-17:20:02 | INFO    | [6/6] 24 Jun Wed · Müzik Klibi · Layout F
-17:20:02 | INFO    | gpt-image-1: Müzik Klibi (F) — 1024x1024
-17:20:19 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
-17:20:19 | INFO    |   · Foto: (1024, 1024)
-17:20:21 | INFO    |   · PNG: posts/2026-06-24-muzik-klibi-F.png
-17:20:21 | INFO    |   → Webhook OK (2026-06-24)
-17:20:21 | INFO    | ═══════ ÖZET ═══════
-17:20:21 | INFO    |   · 2026-06-07 · Yapay Zeka Reklam Filmleri       · Layout A · 2026-06-07-yapay-zeka-reklam-filmleri-A.png
-17:20:21 | INFO    |   · 2026-06-10 · Yapay Zeka Reklam Filmleri       · Layout M · 2026-06-10-yapay-zeka-reklam-filmleri-M.png
-17:20:21 | INFO    |   · 2026-06-12 · Yapay Zeka Reklam Filmleri       · Layout F · 2026-06-12-yapay-zeka-reklam-filmleri-F.png
-17:20:21 | INFO    |   · 2026-06-17 · Müzik Klibi                      · Layout A · 2026-06-17-muzik-klibi-A.png
-17:20:21 | INFO    |   · 2026-06-19 · Müzik Klibi                      · Layout M · 2026-06-19-muzik-klibi-M.png
-17:20:21 | INFO    |   · 2026-06-24 · Müzik Klibi                      · Layout F · 2026-06-24-muzik-klibi-F.png
-17:20:21 | INFO    | Toplam 6 post üretildi.
-17:20:21 | INFO    | Bitti. ✅
+18:08:29 | INFO    |   · PNG: posts/2026-06-07-yapay-zeka-reklam-filmleri-A.png
+18:08:30 | INFO    |   → Webhook OK (2026-06-07)
+18:08:30 | INFO    | [2/6] 10 Jun Wed · Yapay Zeka Reklam Filmleri · Layout M
+18:08:30 | INFO    |   · PNG: posts/2026-06-10-yapay-zeka-reklam-filmleri-M.png
+18:08:31 | INFO    |   → Webhook OK (2026-06-10)
+18:08:31 | INFO    | [3/6] 12 Jun Fri · Yapay Zeka Reklam Filmleri · Layout F
+18:08:31 | INFO    | gpt-image-1: Yapay Zeka Reklam Filmleri (F) — 1024x1024
+18:08:48 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
+18:08:48 | INFO    |   · Foto: (1024, 1024)
+18:08:49 | INFO    |   · PNG: posts/2026-06-12-yapay-zeka-reklam-filmleri-F.png
+18:08:50 | INFO    |   → Webhook OK (2026-06-12)
+18:08:50 | INFO    | [4/6] 17 Jun Wed · Müzik Klibi · Layout A
+18:08:50 | INFO    | gpt-image-1: Müzik Klibi (A) — 1024x1536
+18:09:10 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
+18:09:10 | INFO    |   · Foto: (1024, 1536)
+18:09:11 | INFO    |   · PNG: posts/2026-06-17-muzik-klibi-A.png
+18:09:11 | INFO    |   → Webhook OK (2026-06-17)
+18:09:11 | INFO    | [5/6] 19 Jun Fri · Müzik Klibi · Layout M
+18:09:12 | INFO    |   · PNG: posts/2026-06-19-muzik-klibi-M.png
+18:09:12 | INFO    |   → Webhook OK (2026-06-19)
+18:09:12 | INFO    | [6/6] 24 Jun Wed · Müzik Klibi · Layout F
+18:09:12 | INFO    | gpt-image-1: Müzik Klibi (F) — 1024x1024
+18:09:27 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
+18:09:28 | INFO    |   · Foto: (1024, 1024)
+18:09:30 | INFO    |   · PNG: posts/2026-06-24-muzik-klibi-F.png
+18:09:30 | INFO    |   → Webhook OK (2026-06-24)
+18:09:30 | INFO    | ═══════ ÖZET ═══════
+18:09:30 | INFO    |   · 2026-06-07 · Yapay Zeka Reklam Filmleri       · Layout A · 2026-06-07-yapay-zeka-reklam-filmleri-A.png
+18:09:30 | INFO    |   · 2026-06-10 · Yapay Zeka Reklam Filmleri       · Layout M · 2026-06-10-yapay-zeka-reklam-filmleri-M.png
+18:09:30 | INFO    |   · 2026-06-12 · Yapay Zeka Reklam Filmleri       · Layout F · 2026-06-12-yapay-zeka-reklam-filmleri-F.png
+18:09:30 | INFO    |   · 2026-06-17 · Müzik Klibi                      · Layout A · 2026-06-17-muzik-klibi-A.png
+18:09:30 | INFO    |   · 2026-06-19 · Müzik Klibi                      · Layout M · 2026-06-19-muzik-klibi-M.png
+18:09:30 | INFO    |   · 2026-06-24 · Müzik Klibi                      · Layout F · 2026-06-24-muzik-klibi-F.png
+18:09:30 | INFO    | Toplam 6 post üretildi.
+18:09:30 | INFO    | Bitti. ✅
