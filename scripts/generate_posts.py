@@ -176,9 +176,14 @@ HIZMETLER = {
 
 # Ay → 2 hizmet rotasyonu (Haziran=tek=Film+AI, Temmuz=çift=Dizi+Müzik)
 def aylik_rotasyon(month: int) -> list[str]:
-    if month % 2 == 0:  # Haziran(6), Ağustos(8), Ekim(10), Aralık(12)
+    # Haziran: AI Reklam + Müzik Klibi (kullanıcı tercihi)
+    # Diğer çift aylar (Ağustos, Ekim, Aralık): Film + AI Reklam
+    # Tek aylar (Temmuz, Eylül, Kasım): Dizi + Müzik Klibi
+    if month == 6:
+        return ["ai_reklam", "muzik_klibi"]
+    elif month % 2 == 0:
         return ["film_yapim", "ai_reklam"]
-    else:               # Temmuz(7), Eylül(9), Kasım(11)
+    else:
         return ["dizi_yapim", "muzik_klibi"]
 
 
@@ -271,13 +276,35 @@ def clean_markdown(text: str) -> str:
 # ────────────────────────────────────────────────────────────────────
 # TARİH HESAPLAMA — Çar/Cuma takvimi
 # ────────────────────────────────────────────────────────────────────
-def compute_post_dates(year: int, month: int, n: int = 6) -> list[date]:
-    """Verilen ayın ilk n adet Çar/Cuma tarihini sırayla döner.
+def compute_post_dates(year: int, month: int, n: int = 6, start_date: date | None = None) -> list[date]:
+    """Yayın tarihlerini hesaplar.
+    
+    Eğer start_date verilirse: o tarih ilk post + sonrası Çar/Cuma takvimi.
+    Verilmezse: ayın ilk n adet Çar/Cuma'sı.
     
     Wed=2, Fri=4 (calendar.WEDNESDAY=2, calendar.FRIDAY=4).
     """
+    dates: list[date] = []
+    
+    if start_date is not None:
+        # İlk post = start_date (haftanın hangi günü olursa olsun)
+        dates.append(start_date)
+        # Sonraki tarihler: start_date'den ileri Çar/Cuma'lar
+        from datetime import timedelta
+        d = start_date + timedelta(days=1)
+        while len(dates) < n:
+            if d.weekday() in (calendar.WEDNESDAY, calendar.FRIDAY):
+                dates.append(d)
+            d += timedelta(days=1)
+            # Güvenlik valfı: 60 gün sonrasını arama
+            if (d - start_date).days > 60:
+                break
+        if len(dates) < n:
+            log.warning(f"start_date={start_date}: sadece {len(dates)}/{n} tarih bulundu")
+        return dates
+    
+    # Klasik mantık: ayın ilk n Çar/Cuma'sı
     days_in_month = calendar.monthrange(year, month)[1]
-    dates = []
     for day in range(1, days_in_month + 1):
         d = date(year, month, day)
         if d.weekday() in (calendar.WEDNESDAY, calendar.FRIDAY):
@@ -976,7 +1003,20 @@ def main():
                         help="Webhook atma, sadece render et")
     parser.add_argument("--skip-photo", action="store_true",
                         help="Foto üretmeyi atla (placeholder kullan) — sadece test için")
+    parser.add_argument("--start-date", type=str, default=None,
+                        help="Başlangıç tarihi (YYYY-MM-DD). Verilirse o tarihten itibaren Çar/Cuma. Verilmezse ayın ilk Çar/Cuma'lardan başlar.")
     args = parser.parse_args()
+    
+    # start_date parse
+    start_date_obj = None
+    if args.start_date:
+        try:
+            from datetime import datetime as _dt
+            start_date_obj = _dt.strptime(args.start_date, "%Y-%m-%d").date()
+            log.info(f"Başlangıç tarihi: {start_date_obj.strftime('%d %b %Y (%a)')}")
+        except ValueError:
+            log.error(f"--start-date geçersiz format: {args.start_date} (YYYY-MM-DD olmalı)")
+            sys.exit(1)
     
     year, month = args.year, args.month
     month_label = args.month_label or f"{AY_ADI_TR[month]} {year}"
@@ -984,7 +1024,7 @@ def main():
     log.info(f"═══════ Saturn Film içerik üretimi: {month_label} ═══════")
     
     # 1) Tarihler
-    dates = compute_post_dates(year, month, n=6)
+    dates = compute_post_dates(year, month, n=6, start_date=start_date_obj)
     if len(dates) < 6:
         log.error(f"Yeterli Çar/Cuma yok ({len(dates)}/6). Durduruluyor.")
         sys.exit(1)
