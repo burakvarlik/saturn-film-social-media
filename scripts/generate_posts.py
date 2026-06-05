@@ -78,6 +78,40 @@ def font(path: str, size: int) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(path, size)
 
 
+def fit_font_to_width(draw, text: str, font_path: str, max_size: int, min_size: int, max_width: int) -> ImageFont.FreeTypeFont:
+    """Text'i max_width'e sığdıracak en büyük font size'ı döndür."""
+    for size in range(max_size, min_size - 1, -2):
+        f = ImageFont.truetype(font_path, size)
+        bbox = draw.textbbox((0, 0), text, font=f)
+        if (bbox[2] - bbox[0]) <= max_width:
+            return f
+    return ImageFont.truetype(font_path, min_size)
+
+
+def wrap_text_to_width(draw, text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list:
+    """Text'i kelime kelime sarmalayıp her satırı max_width'e sığdır."""
+    if not text:
+        return []
+    lines = []
+    for paragraph in text.split("\n"):
+        words = paragraph.split()
+        cur = ""
+        for w in words:
+            test = (cur + " " + w).strip() if cur else w
+            bbox = draw.textbbox((0, 0), test, font=font)
+            if (bbox[2] - bbox[0]) <= max_width:
+                cur = test
+            else:
+                if cur:
+                    lines.append(cur)
+                cur = w
+        if cur:
+            lines.append(cur)
+    return lines
+
+
+
+
 # ────────────────────────────────────────────────────────────────────
 # HİZMETLER (4 ana hizmet)
 # ────────────────────────────────────────────────────────────────────
@@ -591,22 +625,34 @@ def render_layout_A(post_data: dict, photo: Image.Image, service_no: int) -> Ima
     f_tag2 = font(F_BOLD_COND, 26)
     draw.text((60, 412), hizmet["tag"], fill=WHITE, font=f_tag2)
     
-    # Headline (3 satır CAPS)
-    f_h = font(F_BOLD_COND, 56)
+    # Headline — ADAPTIVE font + wrap (text alanı: PHOTO_X - 60 margin - 20 buffer)
+    MAX_W_A = PHOTO_X - 80
+    raw_h_lines = (post_data.get("headline") or "").upper().split("\n")
+    longest_h = max(raw_h_lines, key=len) if raw_h_lines else ""
+    f_h = fit_font_to_width(draw, longest_h, F_BOLD_COND, max_size=56, min_size=34, max_width=MAX_W_A)
+    line_h_h = int(f_h.size * 1.18)
+    
     y = 490
-    for line in (post_data.get("headline") or "").split("\n"):
-        draw.text((60, y), line.upper(), fill=WHITE, font=f_h)
-        y += 66
+    for line in raw_h_lines:
+        bbox = draw.textbbox((0, 0), line, font=f_h)
+        if (bbox[2] - bbox[0]) > MAX_W_A:
+            for w_line in wrap_text_to_width(draw, line, f_h, MAX_W_A):
+                draw.text((60, y), w_line, fill=WHITE, font=f_h)
+                y += line_h_h
+        else:
+            draw.text((60, y), line, fill=WHITE, font=f_h)
+            y += line_h_h
     
     # Gold sweep
     draw_gold_sweep_line(draw, 60, y + 25, 380, y + 25, width=3)
     
-    # Subtitle (italic)
+    # Subtitle (italic) — word wrap
     f_sub = font(F_OBLIQUE, 22)
     sub_y = y + 55
     for line in (post_data.get("subtitle") or "").split("\n"):
-        draw.text((60, sub_y), line, fill=MUTED, font=f_sub)
-        sub_y += 30
+        for w_line in wrap_text_to_width(draw, line, f_sub, MAX_W_A):
+            draw.text((60, sub_y), w_line, fill=MUTED, font=f_sub)
+            sub_y += 30
     
     # Alt URL
     f_url = font(F_BOLD_COND, 18)
@@ -645,16 +691,36 @@ def render_layout_M(post_data: dict, service_no: int) -> Image.Image:
     bbox = draw.textbbox((0, 0), num_text, font=f_num)
     draw.text((POST_SIZE - 60 - (bbox[2] - bbox[0]), 70), num_text, fill=GOLD, font=f_num)
     
-    # Slogan (büyük, ortalanmış)
-    f_sl = font(F_BOLD_COND, 72)
-    lines = (post_data.get("slogan") or "").upper().split("\n")
-    total_h = len(lines) * 84
+    # Slogan (büyük, ortalanmış) — ADAPTIVE FONT SIZE
+    MAX_W_M = POST_SIZE - 120  # 60px margin her iki yandan
+    raw_lines = (post_data.get("slogan") or "").upper().split("\n")
+    
+    # Her satır için en uzun olana göre tek bir font size belirle
+    longest = max(raw_lines, key=len) if raw_lines else ""
+    f_sl = fit_font_to_width(draw, longest, F_BOLD_COND, max_size=72, min_size=42, max_width=MAX_W_M)
+    
+    # Line height fontun ~%117'si
+    line_h = int(f_sl.size * 1.17)
+    
+    # Uzun tek satır varsa otomatik wrap dene (font 42'de hala taşıyorsa)
+    final_lines = []
+    for line in raw_lines:
+        bbox = draw.textbbox((0, 0), line, font=f_sl)
+        if (bbox[2] - bbox[0]) > MAX_W_M:
+            # Wrap yap
+            wrapped = wrap_text_to_width(draw, line, f_sl, MAX_W_M)
+            final_lines.extend(wrapped)
+        else:
+            final_lines.append(line)
+    
+    total_h = len(final_lines) * line_h
     sy = (POST_SIZE - total_h) // 2 - 40
-    for line in lines:
+    for line in final_lines:
         bbox = draw.textbbox((0, 0), line, font=f_sl)
         tw = bbox[2] - bbox[0]
         draw.text(((POST_SIZE - tw) // 2, sy), line, fill=WHITE, font=f_sl)
-        sy += 84
+        sy += line_h
+    sy -= line_h  # son line için artırılmış olanı geri al, sonra dot için kullan
     
     # Cyan dot (Saturn ring metaforu)
     dot_y = sy + 25
@@ -710,19 +776,31 @@ def render_layout_B(post_data: dict, photo: Image.Image, service_no: int) -> Ima
     f_tag = font(F_BOLD_COND, 20)
     draw.text((60, cta_y), "— PROJENİZ İÇİN", fill=CYAN, font=f_tag)
     
-    # CTA başlık
-    f_h = font(F_BOLD_COND, 44)
-    y = cta_y + 36
-    for line in (post_data.get("cta_headline") or "").upper().split("\n"):
-        draw.text((60, y), line, fill=WHITE, font=f_h)
-        y += 52
+    # CTA başlık — ADAPTIVE: uzun başlık için font düşür + wrap
+    MAX_W_B = POST_SIZE - 120  # 60px margin her iki yandan
+    raw_headline_lines = (post_data.get("cta_headline") or "").upper().split("\n")
+    longest_h = max(raw_headline_lines, key=len) if raw_headline_lines else ""
+    f_h = fit_font_to_width(draw, longest_h, F_BOLD_COND, max_size=44, min_size=30, max_width=MAX_W_B)
+    line_h_h = int(f_h.size * 1.18)
     
-    # CTA body
+    y = cta_y + 36
+    for line in raw_headline_lines:
+        bbox = draw.textbbox((0, 0), line, font=f_h)
+        if (bbox[2] - bbox[0]) > MAX_W_B:
+            for w_line in wrap_text_to_width(draw, line, f_h, MAX_W_B):
+                draw.text((60, y), w_line, fill=WHITE, font=f_h)
+                y += line_h_h
+        else:
+            draw.text((60, y), line, fill=WHITE, font=f_h)
+            y += line_h_h
+    
+    # CTA body — WORD WRAP
     f_b = font(F_REG, 20)
     y += 12
     for line in (post_data.get("cta_body") or "").split("\n"):
-        draw.text((60, y), line, fill=MUTED, font=f_b)
-        y += 28
+        for w_line in wrap_text_to_width(draw, line, f_b, MAX_W_B):
+            draw.text((60, y), w_line, fill=MUTED, font=f_b)
+            y += 28
     
     # Alt URL + CTA ok
     f_url = font(F_BOLD_COND, 18)
