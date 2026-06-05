@@ -747,10 +747,10 @@ def render_layout_M(post_data: dict, service_no: int) -> Image.Image:
         tw = bbox[2] - bbox[0]
         draw.text(((POST_SIZE - tw) // 2, sy), line, fill=WHITE, font=f_sl)
         sy += line_h
-    # sy artık son satırın ALTINDA — dot ve subslogan buradan devam eder
+    sy -= line_h  # son line için artırılmış olanı geri al, sonra dot için kullan
     
     # Cyan dot (Saturn ring metaforu)
-    dot_y = sy + 18
+    dot_y = sy + 25
     draw_cyan_dot(draw, cx, dot_y, r=6)
     
     # Subslogan (italic)
@@ -872,11 +872,24 @@ def render_layout_F(post_data: dict, photo: Image.Image, service_no: int) -> Ima
     # Alt blok: tag + baslik
     f_tag = font(F_BOLD_COND, 22)
     draw.text((60, POST_SIZE - 300), "— " + hizmet["tag"], fill=CYAN, font=f_tag)
-    f_h = font(F_BOLD_COND, 62)
-    y = POST_SIZE - 262
-    for line in (post_data.get("headline") or "").split("\n"):
-        draw.text((60, y), line.upper(), fill=WHITE, font=f_h)
-        y += 66
+    MAX_W_F = POST_SIZE - 120
+    raw_f_lines = (post_data.get("headline") or "").upper().split("\n")
+    longest_f = max(raw_f_lines, key=len) if raw_f_lines else ""
+    f_h = fit_font_to_width(draw, longest_f, F_BOLD_COND, max_size=62, min_size=34, max_width=MAX_W_F)
+    line_h_f = int(f_h.size * 1.08)
+    # Wrap uzun satırları
+    _f_lines = []
+    for line in raw_f_lines:
+        bbox = draw.textbbox((0, 0), line, font=f_h)
+        if (bbox[2] - bbox[0]) > MAX_W_F:
+            _f_lines.extend(wrap_text_to_width(draw, line, f_h, MAX_W_F))
+        else:
+            _f_lines.append(line)
+    # Çok satır olursa yukarı kaydır (gradient içinde kalsın)
+    y = POST_SIZE - 262 - max(0, (len(_f_lines) - 1)) * line_h_f
+    for line in _f_lines:
+        draw.text((60, y), line, fill=WHITE, font=f_h)
+        y += line_h_f
     draw.line([(62, y + 10), (300, y + 10)], fill=GOLD, width=3)
     f_sub = font(F_OBLIQUE, 26)
     draw.text((60, y + 26), post_data.get("subtitle") or "", fill=MUTED, font=f_sub)
