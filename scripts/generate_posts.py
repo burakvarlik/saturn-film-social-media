@@ -747,10 +747,10 @@ def render_layout_M(post_data: dict, service_no: int) -> Image.Image:
         tw = bbox[2] - bbox[0]
         draw.text(((POST_SIZE - tw) // 2, sy), line, fill=WHITE, font=f_sl)
         sy += line_h
-    sy -= line_h  # son line için artırılmış olanı geri al, sonra dot için kullan
+    # sy artık son satırın ALTINDA — dot ve subslogan buradan devam eder
     
     # Cyan dot (Saturn ring metaforu)
-    dot_y = sy + 25
+    dot_y = sy + 18
     draw_cyan_dot(draw, cx, dot_y, r=6)
     
     # Subslogan (italic)
