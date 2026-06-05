@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       month_label:
-        description: 'Hedef ay (ör. "Temmuz 2026")'
+        description: 'Hedef ay (ör. "Haziran 2026")'
         required: true
-        default: 'Temmuz 2026'
+        default: 'Haziran 2026'
       year:
         description: 'Yıl'
         required: true
@@ -14,9 +14,12 @@ on:
       month:
         description: 'Ay numarası (1-12)'
         required: true
-        default: '7'
+        default: '6'
+      start_date:
+        description: 'Başlangıç tarihi YYYY-MM-DD (opsiyonel)'
+        required: false
+        default: ''
   schedule:
-    # Her ayın 25'inde 06:00 UTC (09:00 Istanbul) — bir sonraki ay için üret
     - cron: '0 6 25 * *'
 
 jobs:
@@ -43,12 +46,13 @@ jobs:
           MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
+          INP_START_DATE: ${{ github.event.inputs.start_date }}
         run: |
-          python -u scripts/generate_posts.py \
-            --year ${{ github.event.inputs.year || '2026' }} \
-            --month ${{ github.event.inputs.month || '7' }} \
-            --month-label "${{ github.event.inputs.month_label || 'Bir sonraki ay' }}" \
-            2>&1 | tee debug.txt || true
+          ARGS="--year ${{ github.event.inputs.year || '2026' }} --month ${{ github.event.inputs.month || '6' }} --month-label \"${{ github.event.inputs.month_label || 'Bir sonraki ay' }}\""
+          if [ -n "$INP_START_DATE" ]; then
+            ARGS="$ARGS --start-date $INP_START_DATE"
+          fi
+          eval python -u scripts/generate_posts.py $ARGS 2>&1 | tee debug.txt || true
 
       - name: Debug log'u commit et (her durumda)
         if: always()
