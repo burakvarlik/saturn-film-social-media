@@ -1,48 +1,48 @@
-14:23:17 | INFO    | ═══════ Saturn Film içerik üretimi: Temmuz 2026 ═══════
-14:23:17 | INFO    | Yayın tarihleri: 01 Jul, 03 Jul, 08 Jul, 10 Jul, 15 Jul, 17 Jul
-14:23:17 | INFO    | Bu ayın hizmetleri: Dizi Yapımı + Müzik Klibi
-14:23:17 | INFO    | Bu ayın layout'ları: ['B', 'M', 'T'] (her hizmet için)
-14:23:17 | INFO    | OpenAI: Temmuz 2026 için içerik üretiliyor (Dizi Yapımı + Müzik Klibi)...
-14:23:32 | INFO    | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
-14:23:32 | INFO    | OpenAI içerik üretimi tamam. Token kullanımı: 2738
-14:23:32 | INFO    | [1/6] 01 Jul Wed · Dizi Yapımı · Layout B
-14:23:32 | INFO    | gpt-image-1: Dizi Yapımı (B) — 1536x1024
-14:23:57 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
-14:23:58 | INFO    |   · Foto: (1536, 1024)
-/home/runner/work/saturn-film-social-media/saturn-film-social-media/scripts/generate_posts.py:456: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+14:47:53 | INFO    | ═══════ Saturn Film içerik üretimi: Temmuz 2026 fix ═══════
+14:47:53 | INFO    | Yayın tarihleri: 01 Jul, 03 Jul, 08 Jul, 10 Jul, 15 Jul, 17 Jul
+14:47:53 | INFO    | Bu ayın hizmetleri: Dizi Yapımı + Müzik Klibi
+14:47:53 | INFO    | Bu ayın layout'ları: ['B', 'M', 'T'] (her hizmet için)
+14:47:53 | INFO    | OpenAI: Temmuz 2026 için içerik üretiliyor (Dizi Yapımı + Müzik Klibi)...
+14:48:07 | INFO    | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+14:48:07 | INFO    | OpenAI içerik üretimi tamam. Token kullanımı: 2625
+14:48:07 | INFO    | [1/6] 01 Jul Wed · Dizi Yapımı · Layout B
+14:48:07 | INFO    | gpt-image-1: Dizi Yapımı (B) — 1536x1024
+14:48:32 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
+14:48:32 | INFO    |   · Foto: (1536, 1024)
+/home/runner/work/saturn-film-social-media/saturn-film-social-media/scripts/generate_posts.py:490: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
   mean_lum = sum(gray.getdata()) / (w * h)
-14:23:58 | INFO    |   · PNG: posts/2026-07-01-dizi-yapimi-B.png
-14:23:59 | INFO    |   → Webhook OK (2026-07-01)
-14:23:59 | INFO    | [2/6] 03 Jul Fri · Dizi Yapımı · Layout M
-14:23:59 | INFO    |   · PNG: posts/2026-07-03-dizi-yapimi-M.png
-14:24:00 | INFO    |   → Webhook OK (2026-07-03)
-14:24:00 | INFO    | [3/6] 08 Jul Wed · Dizi Yapımı · Layout T
-14:24:00 | INFO    | gpt-image-1: Dizi Yapımı (T) — 1536x1024
-14:24:21 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
-14:24:21 | INFO    |   · Foto: (1536, 1024)
-14:24:21 | INFO    |   · PNG: posts/2026-07-08-dizi-yapimi-T.png
-14:24:22 | INFO    |   → Webhook OK (2026-07-08)
-14:24:22 | INFO    | [4/6] 10 Jul Fri · Müzik Klibi · Layout B
-14:24:22 | INFO    | gpt-image-1: Müzik Klibi (B) — 1536x1024
-14:24:44 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
-14:24:45 | INFO    |   · Foto: (1536, 1024)
-14:24:45 | INFO    |   · PNG: posts/2026-07-10-muzik-klibi-B.png
-14:24:46 | INFO    |   → Webhook OK (2026-07-10)
-14:24:46 | INFO    | [5/6] 15 Jul Wed · Müzik Klibi · Layout M
-14:24:46 | INFO    |   · PNG: posts/2026-07-15-muzik-klibi-M.png
-14:24:47 | INFO    |   → Webhook OK (2026-07-15)
-14:24:47 | INFO    | [6/6] 17 Jul Fri · Müzik Klibi · Layout T
-14:24:47 | INFO    | gpt-image-1: Müzik Klibi (T) — 1536x1024
-14:25:08 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
-14:25:08 | INFO    |   · Foto: (1536, 1024)
-14:25:09 | INFO    |   · PNG: posts/2026-07-17-muzik-klibi-T.png
-14:25:09 | INFO    |   → Webhook OK (2026-07-17)
-14:25:09 | INFO    | ═══════ ÖZET ═══════
-14:25:09 | INFO    |   · 2026-07-01 · Dizi Yapımı                      · Layout B · 2026-07-01-dizi-yapimi-B.png
-14:25:09 | INFO    |   · 2026-07-03 · Dizi Yapımı                      · Layout M · 2026-07-03-dizi-yapimi-M.png
-14:25:09 | INFO    |   · 2026-07-08 · Dizi Yapımı                      · Layout T · 2026-07-08-dizi-yapimi-T.png
-14:25:09 | INFO    |   · 2026-07-10 · Müzik Klibi                      · Layout B · 2026-07-10-muzik-klibi-B.png
-14:25:09 | INFO    |   · 2026-07-15 · Müzik Klibi                      · Layout M · 2026-07-15-muzik-klibi-M.png
-14:25:09 | INFO    |   · 2026-07-17 · Müzik Klibi                      · Layout T · 2026-07-17-muzik-klibi-T.png
-14:25:09 | INFO    | Toplam 6 post üretildi.
-14:25:09 | INFO    | Bitti. ✅
+14:48:33 | INFO    |   · PNG: posts/2026-07-01-dizi-yapimi-B.png
+14:48:33 | INFO    |   → Webhook OK (2026-07-01)
+14:48:33 | INFO    | [2/6] 03 Jul Fri · Dizi Yapımı · Layout M
+14:48:33 | INFO    |   · PNG: posts/2026-07-03-dizi-yapimi-M.png
+14:48:34 | INFO    |   → Webhook OK (2026-07-03)
+14:48:34 | INFO    | [3/6] 08 Jul Wed · Dizi Yapımı · Layout T
+14:48:34 | INFO    | gpt-image-1: Dizi Yapımı (T) — 1536x1024
+14:49:00 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
+14:49:00 | INFO    |   · Foto: (1536, 1024)
+14:49:00 | INFO    |   · PNG: posts/2026-07-08-dizi-yapimi-T.png
+14:49:01 | INFO    |   → Webhook OK (2026-07-08)
+14:49:01 | INFO    | [4/6] 10 Jul Fri · Müzik Klibi · Layout B
+14:49:01 | INFO    | gpt-image-1: Müzik Klibi (B) — 1536x1024
+14:49:22 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
+14:49:22 | INFO    |   · Foto: (1536, 1024)
+14:49:23 | INFO    |   · PNG: posts/2026-07-10-muzik-klibi-B.png
+14:49:24 | INFO    |   → Webhook OK (2026-07-10)
+14:49:24 | INFO    | [5/6] 15 Jul Wed · Müzik Klibi · Layout M
+14:49:24 | INFO    |   · PNG: posts/2026-07-15-muzik-klibi-M.png
+14:49:24 | INFO    |   → Webhook OK (2026-07-15)
+14:49:24 | INFO    | [6/6] 17 Jul Fri · Müzik Klibi · Layout T
+14:49:24 | INFO    | gpt-image-1: Müzik Klibi (T) — 1536x1024
+14:49:43 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 200 OK"
+14:49:44 | INFO    |   · Foto: (1536, 1024)
+14:49:44 | INFO    |   · PNG: posts/2026-07-17-muzik-klibi-T.png
+14:49:45 | INFO    |   → Webhook OK (2026-07-17)
+14:49:45 | INFO    | ═══════ ÖZET ═══════
+14:49:45 | INFO    |   · 2026-07-01 · Dizi Yapımı                      · Layout B · 2026-07-01-dizi-yapimi-B.png
+14:49:45 | INFO    |   · 2026-07-03 · Dizi Yapımı                      · Layout M · 2026-07-03-dizi-yapimi-M.png
+14:49:45 | INFO    |   · 2026-07-08 · Dizi Yapımı                      · Layout T · 2026-07-08-dizi-yapimi-T.png
+14:49:45 | INFO    |   · 2026-07-10 · Müzik Klibi                      · Layout B · 2026-07-10-muzik-klibi-B.png
+14:49:45 | INFO    |   · 2026-07-15 · Müzik Klibi                      · Layout M · 2026-07-15-muzik-klibi-M.png
+14:49:45 | INFO    |   · 2026-07-17 · Müzik Klibi                      · Layout T · 2026-07-17-muzik-klibi-T.png
+14:49:45 | INFO    | Toplam 6 post üretildi.
+14:49:45 | INFO    | Bitti. ✅
