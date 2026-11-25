@@ -1,13 +1,13 @@
-10:58:08 | INFO    | ═══════ Saturn Film içerik üretimi: Bir sonraki ay ═══════
-10:58:08 | INFO    | Yayın tarihleri: 03 Jun, 05 Jun, 10 Jun, 12 Jun, 17 Jun, 19 Jun
-10:58:08 | INFO    | Bu ayın hizmetleri: Yapay Zeka Reklam Filmleri + Müzik Klibi
-10:58:08 | INFO    | Bu ayın layout'ları: ['A', 'M', 'F'] (her hizmet için)
-10:58:08 | INFO    | OpenAI: Haziran 2026 için içerik üretiliyor (Yapay Zeka Reklam Filmleri + Müzik Klibi)...
-10:58:15 | INFO    | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
-10:58:15 | INFO    | OpenAI içerik üretimi tamam. Token kullanımı: 2579
-10:58:15 | INFO    | [1/6] 03 Jun Wed · Yapay Zeka Reklam Filmleri · Layout A
-10:58:15 | INFO    | gpt-image-1: Yapay Zeka Reklam Filmleri (A) — 1024x1536
-10:58:17 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 400 Bad Request"
+16:56:39 | INFO    | ═══════ Saturn Film içerik üretimi: Bir sonraki ay ═══════
+16:56:39 | INFO    | Yayın tarihleri: 03 Jun, 05 Jun, 10 Jun, 12 Jun, 17 Jun, 19 Jun
+16:56:39 | INFO    | Bu ayın hizmetleri: Yapay Zeka Reklam Filmleri + Müzik Klibi
+16:56:39 | INFO    | Bu ayın layout'ları: ['A', 'M', 'F'] (her hizmet için)
+16:56:39 | INFO    | OpenAI: Haziran 2026 için içerik üretiliyor (Yapay Zeka Reklam Filmleri + Müzik Klibi)...
+16:56:50 | INFO    | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+16:56:50 | INFO    | OpenAI içerik üretimi tamam. Token kullanımı: 2508
+16:56:50 | INFO    | [1/6] 03 Jun Wed · Yapay Zeka Reklam Filmleri · Layout A
+16:56:50 | INFO    | gpt-image-1: Yapay Zeka Reklam Filmleri (A) — 1024x1536
+16:56:50 | INFO    | HTTP Request: POST https://api.openai.com/v1/images/generations "HTTP/1.1 400 Bad Request"
 Traceback (most recent call last):
   File "/home/runner/work/saturn-film-social-media/saturn-film-social-media/scripts/generate_posts.py", line 1182, in <module>
     main()
@@ -17,15 +17,15 @@ Traceback (most recent call last):
   File "/home/runner/work/saturn-film-social-media/saturn-film-social-media/scripts/generate_posts.py", line 468, in generate_photo
     response = client.images.generate(
                ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/openai/_utils/_utils.py", line 298, in wrapper
+  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/openai/_utils/_utils.py", line 298, in wrapper
     return func(*args, **kwargs)
            ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/openai/resources/images.py", line 1019, in generate
+  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/openai/resources/images.py", line 1327, in generate
     return self._post(
            ^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/openai/_base_client.py", line 1474, in post
+  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/openai/_base_client.py", line 1474, in post
     return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/openai/_base_client.py", line 1247, in request
+  File "/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/openai/_base_client.py", line 1248, in request
     raise self._make_status_error_from_response(err.response) from None
-openai.BadRequestError: Error code: 400 - {'error': {'message': "The model 'gpt-image-1' does not exist.", 'type': 'image_generation_user_error', 'param': 'model', 'code': 'invalid_value'}}
+openai.BadRequestError: Error code: 400 - The model 'gpt-image-1' does not exist.
